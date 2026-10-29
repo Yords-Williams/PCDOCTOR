@@ -1,0 +1,143 @@
+* {
+    -fx-font-family: "Segoe UI";
+}
+
+.root {
+    -fx-background-color: #f5f7fb;
+}
+
+.header {
+    -fx-padding: 22 28 18 28;
+    -fx-background-color: #182230;
+}
+
+.title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #cbd5e1;
+}
+
+.sidebar {
+    -fx-padding: 20;
+    -fx-pref-width: 245;
+    -fx-background-color: #202b3a;
+}
+
+.navigation {
+    -fx-pref-width: 265;
+    -fx-background-color: #202b3a;
+    -fx-background: #202b3a;
+    -fx-border-color: transparent;
+}
+
+.navigation > .viewport {
+    -fx-background-color: #202b3a;
+}
+
+.sidebar .button {
+    -fx-background-color: #2e3b4d;
+    -fx-text-fill: white;
+    -fx-padding: 10 12;
+    -fx-background-radius: 7;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.sidebar .button:hover {
+    -fx-background-color: #3c4d63;
+}
+
+.section {
+    -fx-text-fill: #8fa3bb;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 0 2 0;
+}
+
+.content {
+    -fx-padding: 30;
+    -fx-background-color: #f5f7fb;
+}
+
+.page-host {
+    -fx-background-color: #f5f7fb;
+}
+
+.page-title {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #182230;
+}
+
+.page-description {
+    -fx-font-size: 14px;
+    -fx-text-fill: #64748b;
+}
+
+.page-status {
+    -fx-padding: 12;
+    -fx-background-color: #e9eef5;
+    -fx-background-radius: 7;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #26364a;
+}
+
+.page-card {
+    -fx-padding: 24;
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-font-size: 16px;
+    -fx-text-fill: #334155;
+}
+
+.result-card {
+    -fx-padding: 22;
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #dbe3ed;
+    -fx-border-radius: 10;
+}
+
+.result-card > .label:first-child {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #64748b;
+}
+
+.result-value {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #182230;
+}
+
+.result-description {
+    -fx-font-size: 14px;
+    -fx-text-fill: #475569;
+}
+
+.titled-pane {
+    -fx-background-color: white;
+}
+
+.titled-pane > .title {
+    -fx-background-color: #e9eef5;
+}
+
+.table-view {
+    -fx-background-color: white;
+}
+
+.console {
+    -fx-font-family: "Consolas";
+    -fx-font-size: 12px;
+}
+
+.footer {
+    -fx-padding: 10 20;
+    -fx-background-color: #e8edf4;
+}

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.pcdoctor.controller.DashboardController">
+    <top>
+        <VBox styleClass="header">
+            <Label text="PC Doctor" styleClass="title"/>
+            <Label text="Diagnóstico, reparación y mantenimiento de Windows" styleClass="subtitle"/>
+        </VBox>
+    </top>
+    <left>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="navigation">
+            <content>
+                <VBox spacing="8" styleClass="sidebar">
+                    <Button text="⌂ Inicio" onAction="#mostrarPaginaInicio" maxWidth="Infinity"/>
+                    <Label text="DIAGNÓSTICO" styleClass="section"/>
+                    <Button text="🔍 Diagnóstico completo" onAction="#ejecutarDiagnostico" maxWidth="Infinity"/>
+                    <Button text="⚠ Detectar problemas" onAction="#detectarProblemas" maxWidth="Infinity"/>
+                    <Button text="↻ Historial" onAction="#cargarHistorial" maxWidth="Infinity"/>
+                    <Label text="ANÁLISIS" styleClass="section"/>
+                    <Button text="📋 Procesos activos" onAction="#mostrarProcesos" maxWidth="Infinity"/>
+                    <Button text="🚀 Programas de inicio" onAction="#mostrarInicio" maxWidth="Infinity"/>
+                    <Button text="🌡 Temperatura WMI" onAction="#mostrarTemperatura" maxWidth="Infinity"/>
+                    <Button text="📄 Generar reporte PDF" onAction="#generarReporte" maxWidth="Infinity"/>
+                    <Label text="SEGURIDAD" styleClass="section"/>
+                    <Button text="🛡 Análisis antivirus" onAction="#mostrarAntivirus" maxWidth="Infinity"/>
+                    <Button text="📁 Archivos duplicados" onAction="#buscarDuplicados" maxWidth="Infinity"/>
+                    <Label text="RED" styleClass="section"/>
+                    <Button text="Limpiar DNS" onAction="#limpiarDns" maxWidth="Infinity"/>
+                    <Button text="Renovar IP" onAction="#renovarIp" maxWidth="Infinity"/>
+                    <Button text="Restablecer Winsock" onAction="#resetWinsock" maxWidth="Infinity"/>
+                    <Button text="Configuración de red" onAction="#configuracionRed" maxWidth="Infinity"/>
+                    <Label text="WINDOWS" styleClass="section"/>
+                    <Button text="SFC /scannow" onAction="#sfc" maxWidth="Infinity"/>
+                    <Button text="DISM RestoreHealth" onAction="#dism" maxWidth="Infinity"/>
+                    <Button text="Limpieza de disco" onAction="#limpiezaDisco" maxWidth="Infinity"/>
+                    <Button text="Administrador de tareas" onAction="#administradorTareas" maxWidth="Infinity"/>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </left>
+    <center>
+        <VBox fx:id="pageRoot" styleClass="page-host"/>
+    </center>
+    <bottom>
+        <HBox styleClass="footer">
+            <Label fx:id="estadoLabel" text="Listo"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="PC Doctor 1.3 • Algunas reparaciones requieren permisos de administrador."/>
+        </HBox>
+    </bottom>
+</BorderPane>

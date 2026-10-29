@@ -1,0 +1,16 @@
+target/
+dist/
+vendor/
+vendor-download/
+downloads/
+.idea/
+*.iml
+*.class
+*.exe
+*.zip
+*.msi
+*.pdb
+*.log
+~$*.docx
+.DS_Store
+pcdoctor.db
