@@ -15,6 +15,7 @@ import java.nio.file.Path;
 public class JavaFxApplication extends Application {
     private ConfigurableApplicationContext context;
 
+    // Spring crea los servicios y el contexto JavaFX carga después la interfaz visual.
     @Override
     public void init() throws IOException {
         Files.createDirectories(Path.of(System.getProperty("user.home"), "PCDoctor"));
@@ -33,7 +34,7 @@ public class JavaFxApplication extends Application {
                 JavaFxApplication.class.getResource("/css/app.css").toExternalForm()
         );
 
-        stage.setTitle("PC Doctor - Diagnóstico y mantenimiento");
+        stage.setTitle("PC Doctor Soporte - Diagnóstico y mantenimiento");
         stage.getIcons().add(
                 new Image(JavaFxApplication.class.getResourceAsStream("/icono.png"))
         );

@@ -8,75 +8,46 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 @Service
 public class ArchivoDuplicadoService {
     public List<GrupoDuplicado> buscar(Path directorio) throws IOException {
+        // Cada grupo usa como identidad el nombre normalizado y el tamaño exacto del archivo.
         if (!Files.isDirectory(directorio)) {
             throw new IOException("La carpeta seleccionada no existe o no es accesible: " + directorio);
         }
-
-        Map<Long, List<Path>> porTamano = new TreeMap<>();
+        Map<ClaveDuplicado, List<Path>> archivosPorIdentidad = new LinkedHashMap<>();
         Files.walkFileTree(directorio, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path archivo, BasicFileAttributes atributos) {
                 if (atributos.isRegularFile()) {
-                    porTamano.computeIfAbsent(atributos.size(), ignorado -> new ArrayList<>())
+                    String nombre = archivo.getFileName().toString().toLowerCase(java.util.Locale.ROOT);
+                    archivosPorIdentidad.computeIfAbsent(new ClaveDuplicado(nombre, atributos.size()), k -> new ArrayList<>())
                             .add(archivo);
                 }
                 return FileVisitResult.CONTINUE;
             }
         });
 
-        Map<String, List<Path>> porContenido = new LinkedHashMap<>();
-        for (List<Path> archivosMismoTamano : porTamano.values()) {
-            if (archivosMismoTamano.size() < 2) {
-                continue;
-            }
-            archivosMismoTamano.sort(Comparator.comparing(Path::toString, String.CASE_INSENSITIVE_ORDER));
-            for (Path archivo : archivosMismoTamano) {
-                porContenido.computeIfAbsent(hash(archivo), ignorado -> new ArrayList<>()).add(archivo);
-            }
-        }
-
-        List<GrupoDuplicado> grupos = new ArrayList<>();
-        for (Map.Entry<String, List<Path>> entrada : porContenido.entrySet()) {
-            List<Path> archivos = entrada.getValue();
+        List<GrupoDuplicado> resultado = new ArrayList<>();
+        for (List<Path> archivos : archivosPorIdentidad.values()) {
             if (archivos.size() > 1) {
-                grupos.add(new GrupoDuplicado(archivos.get(0), archivos.subList(1, archivos.size())));
+                // Se conserva el primero y el resto se presenta como duplicado eliminado posteriormente por el usuario.
+                archivos.sort(Comparator.comparing(Path::toString, String.CASE_INSENSITIVE_ORDER));
+                resultado.add(new GrupoDuplicado(archivos.get(0), archivos.subList(1, archivos.size())));
             }
         }
-        return List.copyOf(grupos);
+        return List.copyOf(resultado);
     }
 
-    private String hash(Path archivo) throws IOException {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            try (var entrada = Files.newInputStream(archivo)) {
-                byte[] buffer = new byte[8192];
-                int leidos;
-                while ((leidos = entrada.read(buffer)) != -1) {
-                    digest.update(buffer, 0, leidos);
-                }
-            }
-            return HexFormat.of().formatHex(digest.digest());
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("La JVM no dispone del algoritmo SHA-256.", e);
-        }
-    }
+    private record ClaveDuplicado(String nombre, long peso) { }
 
     public record GrupoDuplicado(Path original, List<Path> duplicados) {
-        public GrupoDuplicado {
-            duplicados = List.copyOf(duplicados);
-        }
+        public GrupoDuplicado { duplicados = List.copyOf(duplicados); }
     }
 }

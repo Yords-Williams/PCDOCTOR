@@ -40,14 +40,20 @@ public class ReportePdfService {
     }
 
     public Path generar() throws Exception {
-        AnalisisCompleto analisis = diagnosticoService.analizarYGuardar();
         Path directorio = Path.of(System.getProperty("user.home"), "Downloads");
+        return generar(directorio);
+    }
+
+    public Path generar(Path directorio) throws Exception {
+        // El diagnóstico se realiza antes de construir el documento para usar datos consistentes.
+        AnalisisCompleto analisis = diagnosticoService.analizarYGuardar();
         Files.createDirectories(directorio);
         LocalDateTime ahora = LocalDateTime.now();
         String marcaTiempo = ahora.format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
         Path archivo = directorio.resolve("reporte-" + marcaTiempo + ".pdf");
 
         try (PDDocument documento = new PDDocument()) {
+            // Layout centraliza saltos de página, márgenes y ajuste de texto largo.
             Layout layout = new Layout(documento);
             layout.titulo(ahora);
 

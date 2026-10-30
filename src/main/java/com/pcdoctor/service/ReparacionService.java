@@ -10,9 +10,6 @@ public class ReparacionService {
         this.comandos = comandos;
     }
 
-    public String limpiarDns() {
-        return comandos.ejecutar("cmd", "/c", "ipconfig", "/flushdns");
-    }
 
     public String renovarIp() {
         return comandos.ejecutar("cmd", "/c", "ipconfig", "/release") +
@@ -36,11 +33,5 @@ public class ReparacionService {
         return comandos.ejecutar("cmd", "/c", "cleanmgr");
     }
 
-    public String abrirAdministradorTareas() {
-        return comandos.ejecutar("cmd", "/c", "taskmgr");
-    }
 
-    public String abrirConfiguracionRed() {
-        return comandos.ejecutar("cmd", "/c", "start", "", "ms-settings:network-status");
-    }
 }

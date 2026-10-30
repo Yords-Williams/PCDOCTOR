@@ -24,6 +24,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Files;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -137,147 +138,55 @@ public class DashboardController {
                 diagnosticoService::obtenerInicioWindows);
     }
 
-    @FXML private void mostrarTemperatura() {
-        VBox page = crearPagina("Temperatura del equipo",
-                "Lecturas térmicas publicadas por el firmware mediante WMI.");
-        Label estado = agregarEstado(page, "Consultando sensores térmicos...");
-        Label lectura = new Label("Esperando lectura...");
-        lectura.getStyleClass().add("result-value");
-        Label detalle = new Label("La disponibilidad depende del firmware del equipo.");
-        detalle.getStyleClass().add("result-description");
-        VBox tarjeta = new VBox(10, new Label("LECTURA TÉRMICA"), lectura, detalle);
-        tarjeta.getStyleClass().add("result-card");
-        page.getChildren().add(tarjeta);
-        ejecutarEnSegundoPlano("No se pudo consultar la temperatura:",
-                diagnosticoService::obtenerTemperatura,
-                resultado -> {
-                    boolean noDisponible = resultado.startsWith("No disponible");
-                    lectura.setText(noDisponible ? "No disponible" : resultado);
-                    detalle.setText(noDisponible
-                            ? resultado
-                            : "Lectura proporcionada por los sensores WMI de Windows.");
-                    estado.setText(noDisponible
-                            ? "Este equipo no publicó sensores térmicos WMI."
-                            : "Lectura térmica obtenida.");
-                    estadoLabel.setText(estado.getText());
-                },
-                error -> {
-                    lectura.setText("No se pudo obtener la lectura");
-                    detalle.setText(error);
-                    estado.setText("Error al consultar la temperatura");
-                    estadoLabel.setText("Error");
-                });
-    }
-
     @FXML private void mostrarAntivirus() {
         VBox page = crearPagina("Análisis antivirus",
-                "Análisis bajo demanda con el motor ClamAV instalado en este equipo.");
-        Label estado = agregarEstado(page, "Buscando instalación de ClamAV...");
-        Label detalle = new Label("ClamAV no ofrece protección en tiempo real desde PC Doctor. "
-                + "Las detecciones se muestran para revisión; no se borran ni se ponen en cuarentena.");
-        detalle.setWrapText(true);
-        detalle.getStyleClass().add("result-description");
+                "PC Doctor Soporte solo ofrece una protección básica y no es en tiempo real.");
+        Label estado = agregarEstado(page, "Selecciona una carpeta para analizar.");
         Label carpeta = new Label("Ninguna carpeta seleccionada.");
         carpeta.setWrapText(true);
-        Button actualizar = new Button("Actualizar firmas");
         Button analizar = new Button("Elegir carpeta y analizar");
-        actualizar.setDisable(true);
-        analizar.setDisable(true);
         TableView<AntivirusService.Detection> detecciones = crearTablaAntivirus();
         TextArea incidencias = new TextArea();
         incidencias.setEditable(false);
         incidencias.setWrapText(true);
         incidencias.setPrefRowCount(4);
-        incidencias.setPromptText("Los detalles del motor aparecerán aquí.");
         VBox.setVgrow(detecciones, Priority.ALWAYS);
-        page.getChildren().addAll(detalle, actualizar, carpeta, analizar,
-                new Label("Detecciones"), detecciones,
-                new Label("Detalles del análisis o actualización"), incidencias);
-
-        Optional<AntivirusService.Installation> installation = antivirusService.findInstallation();
-        if (installation.isEmpty()) {
-            estado.setText("ClamAV no está instalado. Instálalo y configura CLAMAV_HOME "
-                    + "o añade la carpeta de ClamAV al PATH; después reinicia PC Doctor.");
-            incidencias.setText("PC Doctor busca clamscan.exe y freshclam.exe en CLAMAV_HOME, "
-                    + "C:\\Program Files\\ClamAV, C:\\Program Files (x86)\\ClamAV y PATH.");
-        } else {
-            AntivirusService.Installation clamAv = installation.orElseThrow();
-            estado.setText("ClamAV encontrado en " + clamAv.directory());
-            actualizar.setDisable(false);
-            analizar.setDisable(false);
-        }
-
-        actualizar.setOnAction(event -> {
-            actualizar.setDisable(true);
-            analizar.setDisable(true);
-            incidencias.clear();
-            estado.setText("Actualizando la base de firmas con freshclam...");
-            estadoLabel.setText(estado.getText());
-            ejecutarEnSegundoPlano("No se pudieron actualizar las firmas:",
-                    antivirusService::updateSignatures,
-                    resultado -> {
-                        incidencias.setText(resultado.hasOutput() ? resultado.output()
-                                : "freshclam terminó sin informar cambios ni errores.");
-                        estado.setText("Actualización de firmas finalizada.");
-                        estadoLabel.setText("Firmas ClamAV actualizadas");
-                        actualizar.setDisable(false);
-                        analizar.setDisable(false);
-                    },
-                    error -> {
-                        incidencias.setText(error);
-                        estado.setText("Falló la actualización de firmas.");
-                        estadoLabel.setText("Error al actualizar ClamAV");
-                        actualizar.setDisable(false);
-                        analizar.setDisable(false);
-                    });
-        });
+        page.getChildren().addAll(carpeta, analizar,
+                new Label("Coincidencias"), detecciones,
+                new Label("Detalles del análisis"), incidencias);
 
         analizar.setOnAction(event -> {
             DirectoryChooser selector = new DirectoryChooser();
             selector.setTitle("Selecciona una carpeta para analizar");
             File seleccion = selector.showDialog(pageRoot.getScene().getWindow());
-            if (seleccion == null) {
-                return;
-            }
+            if (seleccion == null) return;
+
             Path directorio = seleccion.toPath();
             carpeta.setText("Carpeta: " + directorio.toAbsolutePath());
             detecciones.getItems().clear();
             incidencias.clear();
-            actualizar.setDisable(true);
             analizar.setDisable(true);
-            estado.setText("Analizando archivos con ClamAV...");
+            estado.setText("Analizando archivos con el motor PC Doctor...");
             estadoLabel.setText(estado.getText());
             ejecutarEnSegundoPlano("No se pudo completar el análisis antivirus:",
                     () -> antivirusService.scan(directorio),
                     resultado -> {
-                        detecciones.setItems(FXCollections.observableArrayList(
-                                resultado.detections()));
+                        detecciones.setItems(FXCollections.observableArrayList(resultado.detections()));
                         incidencias.setText(resultado.output());
-                        if (resultado.completedWithErrors()) {
-                            estado.setText("ClamAV terminó con errores; revisa los detalles. "
-                                    + resultado.detections().size() + " detección(es) reportada(s).");
-                            estadoLabel.setText("Análisis con errores");
-                        } else if (resultado.exitCode() == 1
-                                && resultado.detections().isEmpty()) {
-                            estado.setText("ClamAV informó una detección, pero no se pudo "
-                                    + "interpretar la salida. Revisa los detalles.");
-                            estadoLabel.setText("Revisar salida de ClamAV");
-                        } else if (resultado.detections().isEmpty()) {
-                            estado.setText("ClamAV no encontró detecciones en "
+                        if (resultado.detections().isEmpty()) {
+                            estado.setText("No se encontraron coincidencias en "
                                     + resultado.filesScanned() + " archivos.");
                             estadoLabel.setText("Análisis finalizado");
                         } else {
-                            estado.setText(resultado.detections().size() + " detección(es), "
-                                    + resultado.filesScanned() + " archivo(s) analizado(s).");
-                            estadoLabel.setText("Se encontraron detecciones");
+                            estado.setText(resultado.detections().size()
+                                    + " coincidencia(s) encontrada(s).");
+                            estadoLabel.setText("Se encontraron coincidencias");
                         }
-                        actualizar.setDisable(false);
                         analizar.setDisable(false);
                     },
                     error -> {
                         estado.setText(error);
                         estadoLabel.setText("Error en análisis antivirus");
-                        actualizar.setDisable(false);
                         analizar.setDisable(false);
                     });
         });
@@ -300,7 +209,7 @@ public class DashboardController {
 
     @FXML private void buscarDuplicados() {
         VBox page = crearPagina("Archivos duplicados",
-                "Elige una carpeta. Los archivos se comparan por tamaño y SHA-256; se conserva "
+                "Elige una carpeta. Los archivos se comparan por nombre y peso; se conserva "
                         + "uno de cada grupo y puedes desmarcar los que quieras conservar.");
         Label estado = agregarEstado(page, "Selecciona una carpeta para empezar.");
         Label carpetaLabel = new Label("Ninguna carpeta seleccionada.");
@@ -424,33 +333,52 @@ public class DashboardController {
     }
 
     private TrashSummary moverAPapelera(List<CandidatoDuplicado> candidatos) {
-        if (!puedeEnviarPapelera()) {
-            throw new IllegalStateException("No está disponible la función de Papelera de reciclaje.");
-        }
         List<Path> movidos = new ArrayList<>();
         List<String> errores = new ArrayList<>();
         for (CandidatoDuplicado candidato : candidatos) {
             try {
-                if (Desktop.getDesktop().moveToTrash(candidato.archivo().toFile())) {
+                if (enviarArchivoAPapelera(candidato.archivo())) {
                     movidos.add(candidato.archivo());
                 } else {
                     errores.add(candidato.archivo() + ": Windows no pudo moverlo a la Papelera.");
                 }
-            } catch (SecurityException | UnsupportedOperationException e) {
+            } catch (IOException | InterruptedException e) {
                 errores.add(candidato.archivo() + ": " + e.getMessage());
             }
         }
         return new TrashSummary(movidos, errores);
     }
 
+    private boolean enviarArchivoAPapelera(Path archivo) throws IOException, InterruptedException {
+        String ruta = archivo.toAbsolutePath().toString().replace("'", "''");
+        String script = "Add-Type -AssemblyName Microsoft.VisualBasic; "
+                + "[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('" + ruta + "', "
+                + "'OnlyErrorDialogs', 'SendToRecycleBin')";
+        Process proceso = new ProcessBuilder("powershell.exe", "-NoProfile", "-NonInteractive",
+                "-Command", script).redirectErrorStream(true).start();
+        return proceso.waitFor() == 0 && !Files.exists(archivo);
+    }
+
     private boolean puedeEnviarPapelera() {
-        return Desktop.isDesktopSupported()
-                && Desktop.getDesktop().isSupported(Desktop.Action.MOVE_TO_TRASH);
+        return new File(System.getenv("SystemRoot") == null ? "C:\\Windows"
+                : System.getenv("SystemRoot"), "System32\\WindowsPowerShell\\v1.0\\powershell.exe").isFile();
     }
 
     @FXML private void generarReporte() {
+        // La carpeta elegida se conserva solo para esta exportación PDF.
         VBox page = crearPagina("Reporte de diagnóstico",
-                "Genera un informe PDF con los resultados guardados en este equipo.");
+                "Selecciona la carpeta donde deseas guardar el informe PDF.");
+        DirectoryChooser selector = new DirectoryChooser();
+        selector.setTitle("Seleccionar carpeta para el reporte PDF");
+        Path descargas = Path.of(System.getProperty("user.home"), "Downloads");
+        if (Files.isDirectory(descargas)) {
+            selector.setInitialDirectory(descargas.toFile());
+        }
+        File carpeta = selector.showDialog(page.getScene().getWindow());
+        if (carpeta == null) {
+            return;
+        }
+
         Label estado = agregarEstado(page, "Generando el reporte...");
         Label ruta = new Label("Preparando el informe...");
         ruta.setWrapText(true);
@@ -461,7 +389,7 @@ public class DashboardController {
         tarjeta.getStyleClass().add("result-card");
         page.getChildren().add(tarjeta);
         ejecutarEnSegundoPlano("No se pudo generar el PDF:",
-                reportePdfService::generar,
+                () -> reportePdfService.generar(carpeta.toPath()),
                 reporte -> {
                     ruta.setText("Guardado en: " + reporte.toAbsolutePath());
                     abrir.setDisable(!puedeAbrirArchivos());
@@ -476,11 +404,6 @@ public class DashboardController {
                     estado.setText("No se pudo generar el reporte.");
                     estadoLabel.setText("Error");
                 });
-    }
-
-    @FXML private void limpiarDns() {
-        ejecutarAccion("Limpiar DNS", "Vacía la caché de resolución de nombres de Windows.",
-                "Limpiando la caché DNS...", reparacionService::limpiarDns);
     }
 
     @FXML private void renovarIp() {
@@ -517,16 +440,6 @@ public class DashboardController {
     @FXML private void limpiezaDisco() {
         ejecutarAccion("Limpieza de disco", "Abre la herramienta de limpieza de Windows.",
                 "Abriendo Limpieza de disco...", reparacionService::abrirLimpiezaDisco);
-    }
-
-    @FXML private void administradorTareas() {
-        ejecutarAccion("Administrador de tareas", "Abre el Administrador de tareas de Windows.",
-                "Abriendo el Administrador de tareas...", reparacionService::abrirAdministradorTareas);
-    }
-
-    @FXML private void configuracionRed() {
-        ejecutarAccion("Configuración de red", "Abre la configuración de red de Windows.",
-                "Abriendo la configuración de red...", reparacionService::abrirConfiguracionRed);
     }
 
     @FXML private void cargarHistorial() {
@@ -676,8 +589,6 @@ public class DashboardController {
             case "Reparar imagen de Windows" ->
                     "DISM terminó. Consulta los detalles para ver el resultado de la reparación.";
             case "Limpieza de disco" -> "Se solicitó abrir la herramienta Limpieza de disco.";
-            case "Administrador de tareas" -> "Se solicitó abrir el Administrador de tareas.";
-            case "Configuración de red" -> "Se solicitó abrir la configuración de red de Windows.";
             default -> "La acción terminó sin errores reportados por Windows.";
         };
     }

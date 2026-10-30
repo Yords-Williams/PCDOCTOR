@@ -69,40 +69,9 @@ public class DiagnosticoService {
         return salida;
     }
 
-    public String obtenerTemperatura() {
-        String ps = "Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature " +
-                "-ErrorAction Stop | Select-Object -ExpandProperty CurrentTemperature";
-        String salida = comandos.ejecutar(ANALYSIS_COMMAND_TIMEOUT, "powershell", "-NoProfile",
-                "-NonInteractive", "-Command", ps);
-        if (salida.isBlank() || salida.startsWith("No se pudo") ||
-                salida.startsWith("El comando") || salida.contains("Error")) {
-            return "No disponible: el firmware no publicó sensores térmicos WMI compatibles.";
-        }
-
-        List<Double> temperaturas = new ArrayList<>();
-        for (String linea : salida.split("\\R")) {
-            try {
-                double decimasKelvin = Double.parseDouble(linea.trim());
-                double celsius = decimasKelvin / 10.0 - 273.15;
-                if (celsius >= -20 && celsius <= 150) temperaturas.add(celsius);
-            } catch (NumberFormatException ignored) {
-                // Algunas versiones de Windows devuelven líneas informativas además de la lectura.
-            }
-        }
-        if (temperaturas.isEmpty()) {
-            return "No disponible: el firmware no publicó una lectura de temperatura válida.";
-        }
-
-        String lecturas = temperaturas.stream()
-                .map(t -> String.format(Locale.ROOT, "%.1f °C", t))
-                .reduce((a, b) -> a + ", " + b)
-                .orElseThrow();
-        return "Temperatura WMI: " + lecturas;
-    }
-
     public String resumenSistema() {
         return obtenerSistema() + System.lineSeparator() + System.lineSeparator() +
-                obtenerDisco() + System.lineSeparator() + System.lineSeparator() + obtenerTemperatura();
+                obtenerDisco();
     }
 
     private AnalisisCompleto analizar() {
@@ -115,15 +84,11 @@ public class DiagnosticoService {
                 "cmd", "/c", "ping", "-n", "1", "-w", "3000", "8.8.8.8");
         String estadoRed = evaluarRed(pruebaRed);
         String detalleRed = estadoRed + System.lineSeparator() + obtenerRed();
-        String temperatura = obtenerTemperatura();
-        String estadoTemperatura = temperatura.startsWith("No disponible") ? "INFO" : "OK";
-
         List<Diagnostico> resultados = List.of(
                 new Diagnostico("Sistema", "OK", sistema),
                 new Diagnostico("Memoria", estadoMemoria, memoria),
                 new Diagnostico("Disco", estadoDisco, almacenamiento),
-                new Diagnostico("Red", estadoRed, detalleRed),
-                new Diagnostico("Temperatura", estadoTemperatura, temperatura));
+                new Diagnostico("Red", estadoRed, detalleRed));
 
         List<Problema> problemas = new ArrayList<>();
         if ("REVISAR".equals(estadoDisco)) {
@@ -140,12 +105,6 @@ public class DiagnosticoService {
             problemas.add(new Problema("Red", "Media",
                     "No se recibió respuesta del host de prueba 8.8.8.8.",
                     "Comprobar la conexión. Algunos firewalls bloquean las solicitudes ping."));
-        }
-        Double maximaTemperatura = temperaturaMaxima(temperatura);
-        if (maximaTemperatura != null && maximaTemperatura >= 90) {
-            problemas.add(new Problema("Temperatura", "Alta",
-                    String.format(Locale.ROOT, "La temperatura reportada alcanza %.1f °C.", maximaTemperatura),
-                    "Revisar ventilación, polvo y sistema de refrigeración."));
         }
         if (problemas.isEmpty()) {
             problemas.add(new Problema("General", "OK", "No se detectaron alertas básicas.",

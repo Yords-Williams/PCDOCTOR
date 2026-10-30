@@ -8,7 +8,7 @@ Aplicación de escritorio para diagnóstico, mantenimiento y reparación guiada 
 - Procesos activos mediante `tasklist`.
 - Programas de inicio del usuario mediante Registro de Windows.
 - Consulta de temperatura mediante WMI cuando el hardware/firmware la expone.
-- Análisis de carpetas bajo demanda con ClamAV y actualización de firmas mediante `freshclam`.
+- Análisis local bajo demanda con el motor antivirus propio de PC Doctor.
 - Búsqueda de archivos duplicados por contenido SHA-256, con selección y confirmación antes de enviarlos a la Papelera.
 - Reparación guiada de DNS, IP y Winsock.
 - SFC y DISM.
@@ -42,8 +42,6 @@ La temperatura WMI no está disponible en todos los equipos. La aplicación no d
 
 Las operaciones SFC, DISM, Winsock y algunas acciones de red pueden requerir una consola/aplicación ejecutada como administrador. La aplicación pide confirmación antes de las reparaciones con mayor impacto.
 
-El instalador incluye ClamAV 1.5.4 y sus bibliotecas necesarias; no es necesario instalar ClamAV por separado. Las firmas se descargan en `%LOCALAPPDATA%\PCDoctor\clamav-database` mediante **Actualizar firmas**. PC Doctor conserva además la detección de instalaciones externas de ClamAV mediante `%CLAMAV_HOME%`, las carpetas habituales bajo `Program Files` y `PATH`.
-
-La distribución integrada incluye avisos de licencia GPLv2 en la carpeta de ClamAV instalada. Antes de redistribuir comercialmente la aplicación, revisa los requisitos de código fuente correspondiente, avisos, firmas digitales y dependencias de terceros con asesoría legal. Desde la pantalla de antivirus pulsa **Actualizar firmas** antes de analizar una carpeta. El análisis es bajo demanda, no proporciona protección en tiempo real y no sustituye un antivirus de escritorio. Una exploración sin detecciones no garantiza que el equipo esté libre de malware. PC Doctor no borra ni pone detecciones en cuarentena automáticamente.
+El motor antivirus es propio y funciona bajo demanda. Actualmente utiliza hashes SHA-256, la firma de prueba EICAR y heurística básica para archivos PE. Una exploración limpia solo indica que el motor no encontró coincidencias conocidas y no garantiza que el equipo esté libre de malware. PC Doctor no proporciona protección en tiempo real ni pone detecciones en cuarentena automáticamente. No distribuya afirmaciones de detección completas hasta ampliar las pruebas y firmas del motor.
 
 La búsqueda de archivos duplicados se limita a la carpeta elegida por el usuario y conserva un archivo de cada grupo. Los archivos seleccionados solo se envían a la Papelera después de una confirmación explícita. No se eliminan archivos automáticamente ni se modifica el registro de Windows de forma destructiva.

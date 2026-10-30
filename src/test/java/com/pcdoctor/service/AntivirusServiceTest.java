@@ -3,72 +3,47 @@ package com.pcdoctor.service;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class AntivirusServiceTest {
+    private static final String EICAR = "PCD EICAR-STANDARD-ANTIVIRUS-TEST-FILE";
+
     @Test
-    void parsesInfectedScanOutputAndExitCode(@TempDir Path directory) {
-        Path scanner = directory.resolve("clamscan.exe");
-        Path updater = directory.resolve("freshclam.exe");
-        AntivirusService.Installation installation =
-                new AntivirusService.Installation(directory, scanner, updater);
-        Path infected = Path.of("C:\\sample\\test-eicar.com");
-        String output = infected + ": Win.Test.EICAR_HDB-1 FOUND\n"
-                + "----------- SCAN SUMMARY -----------\n"
-                + "Scanned files: 4\n"
-                + "Infected files: 1\n";
+    void detectsEicarTestFile(@TempDir Path directory) throws Exception {
+        Path file = directory.resolve("eicar.com");
+        Files.writeString(file, EICAR, StandardCharsets.US_ASCII);
+        AntivirusService service = new AntivirusService();
 
-        AntivirusService.ScanResult result = AntivirusService.parseScanResult(
-                Path.of("C:\\sample"), installation, 1, output);
+        AntivirusService.Detection result = service.analyze(file);
 
-        assertEquals(4, result.filesScanned());
-        assertEquals(1, result.detections().size());
-        assertEquals(infected, result.detections().get(0).file());
-        assertEquals("Win.Test.EICAR_HDB-1", result.detections().get(0).name());
-        assertTrue(result.output().contains("Infected files: 1"));
+        assertNotNull(result);
+        assertEquals("PCD-Test-EICAR", result.name());
+        assertEquals(file, result.file());
+        assertTrue(result.confidence() >= 90);
     }
 
     @Test
-    void marksClamAvEngineErrorsAsIncompleteScan(@TempDir Path directory) {
-        AntivirusService.Installation installation = new AntivirusService.Installation(
-                directory, directory.resolve("clamscan.exe"), directory.resolve("freshclam.exe"));
+    void cleanTextFileHasNoDetection(@TempDir Path directory) throws Exception {
+        Path file = directory.resolve("documento.txt");
+        Files.writeString(file, "Este es un documento normal de texto.", StandardCharsets.UTF_8);
+        AntivirusService service = new AntivirusService();
 
-        AntivirusService.ScanResult result = AntivirusService.parseScanResult(
-                directory, installation, 2, "LibClamAV Error: database missing\n");
-
-        assertTrue(result.completedWithErrors());
-        assertEquals(0, result.detections().size());
+        assertNull(service.analyze(file));
     }
 
     @Test
-    void parsesCleanScanOutputWithoutCallingItGuaranteedSafe(@TempDir Path directory) {
-        AntivirusService.Installation installation = new AntivirusService.Installation(
-                directory, directory.resolve("clamscan.exe"), directory.resolve("freshclam.exe"));
+    void scansOnlyRegularFilesInFolder(@TempDir Path directory) throws Exception {
+        Files.writeString(directory.resolve("a.txt"), "texto limpio", StandardCharsets.UTF_8);
+        Files.writeString(directory.resolve("b.txt"), "otro texto limpio", StandardCharsets.UTF_8);
+        AntivirusService service = new AntivirusService();
 
-        AntivirusService.ScanResult result = AntivirusService.parseScanResult(
-                directory, installation, 0,
-                "----------- SCAN SUMMARY -----------\nScanned files: 12\nInfected files: 0\n");
+        AntivirusService.ScanResult result = service.scan(directory);
 
-        assertEquals(12, result.filesScanned());
-        assertEquals(0, result.detections().size());
-        assertEquals(0, result.exitCode());
-        assertFalse(result.completedWithErrors());
-    }
-
-    @Test
-    void locatesClamAvInConfiguredSearchDirectory(@TempDir Path directory) throws Exception {
-        Files.createFile(directory.resolve("clamscan.exe"));
-        Files.createFile(directory.resolve("freshclam.exe"));
-
-        AntivirusService service = new AntivirusService(List.of(directory));
-
-        assertTrue(service.findInstallation().isPresent());
-        assertEquals(directory, service.findInstallation().orElseThrow().directory());
+        assertEquals(2, result.filesScanned());
+        assertTrue(result.detections().isEmpty());
     }
 }

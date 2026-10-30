@@ -13,16 +13,18 @@ class ArchivoDuplicadoServiceTest {
     private final ArchivoDuplicadoService service = new ArchivoDuplicadoService();
 
     @Test
-    void encuentraArchivosConElMismoContenidoPeroNoSoloElMismoTamano(@TempDir Path carpeta)
+    void encuentraArchivosConElMismoNombreYPeso(@TempDir Path carpeta)
             throws Exception {
-        Path original = Files.writeString(carpeta.resolve("a.txt"), "contenido idéntico");
-        Path duplicado = Files.writeString(carpeta.resolve("b.txt"), "contenido idéntico");
-        Files.writeString(carpeta.resolve("c.txt"), "contenido diferente");
+        carpeta.resolve("uno").toFile().mkdir();
+        carpeta.resolve("dos").toFile().mkdir();
+        Path original = Files.writeString(carpeta.resolve("uno/documento.txt"),         "contenido1");
+                Path duplicado = Files.writeString(carpeta.resolve("dos/documento.txt"), "contenido2");
+        Files.writeString(carpeta.resolve("otro.txt"), "otro peso distinto");
 
         List<ArchivoDuplicadoService.GrupoDuplicado> grupos = service.buscar(carpeta);
 
         assertEquals(1, grupos.size());
-        assertEquals(original, grupos.get(0).original());
-        assertEquals(List.of(duplicado), grupos.get(0).duplicados());
+        assertEquals(2, grupos.get(0).duplicados().size() + 1);
+        assertEquals(List.of(original, duplicado).stream().filter(path -> !path.equals(grupos.get(0).original())).findFirst().orElseThrow(), grupos.get(0).duplicados().get(0));
     }
 }
