@@ -420,28 +420,6 @@ public class DashboardController {
         }
     }
 
-    @FXML private void sfc() {
-        if (confirmar("SFC /scannow", "Puede tardar varios minutos. ¿Ejecutarlo?")) {
-            ejecutarAccion("Comprobación de archivos de Windows",
-                    "Busca y repara archivos protegidos del sistema.",
-                    "Ejecutando SFC /scannow...", reparacionService::comprobarArchivosWindows);
-        }
-    }
-
-    @FXML private void dism() {
-        if (confirmar("DISM RestoreHealth",
-                "Puede tardar bastante y normalmente requiere administrador. ¿Continuar?")) {
-            ejecutarAccion("Reparar imagen de Windows",
-                    "Usa DISM para comprobar y reparar la imagen de Windows.",
-                    "Ejecutando DISM RestoreHealth...", reparacionService::repararImagenWindows);
-        }
-    }
-
-    @FXML private void limpiezaDisco() {
-        ejecutarAccion("Limpieza de disco", "Abre la herramienta de limpieza de Windows.",
-                "Abriendo Limpieza de disco...", reparacionService::abrirLimpiezaDisco);
-    }
-
     @FXML private void cargarHistorial() {
         VBox page = crearPagina("Historial del diagnóstico",
                 "Últimos diagnósticos guardados en este equipo.");
@@ -584,11 +562,6 @@ public class DashboardController {
             case "Renovar dirección IP" -> "La solicitud para renovar la dirección IP terminó sin errores.";
             case "Restablecer Winsock" ->
                     "Winsock se restableció. Reinicia Windows para aplicar los cambios.";
-            case "Comprobación de archivos de Windows" ->
-                    "SFC terminó. Consulta los detalles para ver el resultado de la comprobación.";
-            case "Reparar imagen de Windows" ->
-                    "DISM terminó. Consulta los detalles para ver el resultado de la reparación.";
-            case "Limpieza de disco" -> "Se solicitó abrir la herramienta Limpieza de disco.";
             default -> "La acción terminó sin errores reportados por Windows.";
         };
     }

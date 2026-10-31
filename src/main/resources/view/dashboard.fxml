@@ -29,10 +29,6 @@
                     <Label text="RED" styleClass="section"/>
                     <Button text="Renovar IP" onAction="#renovarIp" maxWidth="Infinity"/>
                     <Button text="Restablecer Winsock" onAction="#resetWinsock" maxWidth="Infinity"/>
-                    <Label text="WINDOWS" styleClass="section"/>
-                    <Button text="SFC /scannow" onAction="#sfc" maxWidth="Infinity"/>
-                    <Button text="DISM RestoreHealth" onAction="#dism" maxWidth="Infinity"/>
-                    <Button text="Limpieza de disco" onAction="#limpiezaDisco" maxWidth="Infinity"/>
                                     </VBox>
             </content>
         </ScrollPane>

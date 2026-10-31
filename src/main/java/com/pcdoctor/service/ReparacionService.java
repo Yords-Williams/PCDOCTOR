@@ -21,17 +21,5 @@ public class ReparacionService {
         return comandos.ejecutar("cmd", "/c", "netsh", "winsock", "reset");
     }
 
-    public String comprobarArchivosWindows() {
-        return comandos.ejecutar("cmd", "/c", "sfc", "/scannow");
-    }
-
-    public String repararImagenWindows() {
-        return comandos.ejecutar("cmd", "/c", "DISM", "/Online", "/Cleanup-Image", "/RestoreHealth");
-    }
-
-    public String abrirLimpiezaDisco() {
-        return comandos.ejecutar("cmd", "/c", "cleanmgr");
-    }
-
 
 }
