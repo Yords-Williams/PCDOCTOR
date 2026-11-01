@@ -10,11 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnabledOnOs(OS.WINDOWS)
 class ComandoWindowsServiceTest {
-    private final ComandoWindowsService comandos = new ComandoWindowsService();
+    private final YWCMComandoWindowsService YWCMcomandos = new YWCMComandoWindowsService();
 
     @Test
     void leeSalidaGrandeMientrasElProcesoSigueActivo() {
-        String salida = comandos.ejecutar(Duration.ofSeconds(15), "cmd", "/c",
+        String salida = YWCMcomandos.YWCMejecutar(Duration.ofSeconds(15), "cmd", "/c",
                 "for /L %i in (1,1,5000) do @echo salida-%i");
 
         assertTrue(salida.contains("salida-1"));
@@ -23,7 +23,7 @@ class ComandoWindowsServiceTest {
 
     @Test
     void informaCodigoDeSalidaNoExitoso() {
-        String salida = comandos.ejecutar(Duration.ofSeconds(5), "cmd", "/c", "exit 7");
+        String salida = YWCMcomandos.YWCMejecutar(Duration.ofSeconds(5), "cmd", "/c", "exit 7");
 
         assertTrue(salida.startsWith("El comando terminó con código 7:"));
     }

@@ -1,12 +1,12 @@
 package com.pcdoctor.controller;
 
-import com.pcdoctor.model.Diagnostico;
-import com.pcdoctor.model.Problema;
-import com.pcdoctor.service.AntivirusService;
-import com.pcdoctor.service.ArchivoDuplicadoService;
-import com.pcdoctor.service.DiagnosticoService;
-import com.pcdoctor.service.ReparacionService;
-import com.pcdoctor.service.ReportePdfService;
+import com.pcdoctor.model.YWCMDiagnostico;
+import com.pcdoctor.model.YWCMProblema;
+import com.pcdoctor.service.YWCMAntivirusService;
+import com.pcdoctor.service.YWCMArchivoDuplicadoService;
+import com.pcdoctor.service.YWCMDiagnosticoService;
+import com.pcdoctor.service.YWCMReparacionService;
+import com.pcdoctor.service.YWCMReportePdfService;
 import jakarta.annotation.PreDestroy;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -36,31 +36,31 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @Component
-public class DashboardController {
+public class YWCMDashboardController {
     @FXML private VBox pageRoot;
     @FXML private Label estadoLabel;
 
-    private final DiagnosticoService diagnosticoService;
-    private final ReparacionService reparacionService;
-    private final ReportePdfService reportePdfService;
-    private final AntivirusService antivirusService;
-    private final ArchivoDuplicadoService archivoDuplicadoService;
-    private final ExecutorService backgroundExecutor = Executors.newFixedThreadPool(3, task -> {
+    private final YWCMDiagnosticoService YWCMdiagnosticoService;
+    private final YWCMReparacionService YWCMreparacionService;
+    private final YWCMReportePdfService YWCMreportePdfService;
+    private final YWCMAntivirusService YWCMantivirusService;
+    private final YWCMArchivoDuplicadoService YWCMarchivoDuplicadoService;
+    private final ExecutorService YWCMbackgroundExecutor = Executors.newFixedThreadPool(3, task -> {
         Thread thread = new Thread(task, "pcdoctor-background");
         thread.setDaemon(true);
         return thread;
     });
 
-    public DashboardController(DiagnosticoService diagnosticoService,
-                               ReparacionService reparacionService,
-                               ReportePdfService reportePdfService,
-                               AntivirusService antivirusService,
-                               ArchivoDuplicadoService archivoDuplicadoService) {
-        this.diagnosticoService = diagnosticoService;
-        this.reparacionService = reparacionService;
-        this.reportePdfService = reportePdfService;
-        this.antivirusService = antivirusService;
-        this.archivoDuplicadoService = archivoDuplicadoService;
+    public YWCMDashboardController(YWCMDiagnosticoService YWCMdiagnosticoService,
+                               YWCMReparacionService YWCMreparacionService,
+                               YWCMReportePdfService YWCMreportePdfService,
+                               YWCMAntivirusService YWCMantivirusService,
+                               YWCMArchivoDuplicadoService YWCMarchivoDuplicadoService) {
+        this.YWCMdiagnosticoService = YWCMdiagnosticoService;
+        this.YWCMreparacionService = YWCMreparacionService;
+        this.YWCMreportePdfService = YWCMreportePdfService;
+        this.YWCMantivirusService = YWCMantivirusService;
+        this.YWCMarchivoDuplicadoService = YWCMarchivoDuplicadoService;
     }
 
     @FXML public void initialize() {
@@ -68,7 +68,7 @@ public class DashboardController {
     }
 
     @FXML private void mostrarPaginaInicio() {
-        VBox page = crearPagina("Bienvenido a PC Doctor",
+        VBox page = YWCMcrearPagina("Bienvenido a PC Doctor",
                 "Selecciona una herramienta en el menú para abrir su pantalla.");
         Label ayuda = new Label("Cada opción muestra aquí sus propios resultados y controles.");
         ayuda.getStyleClass().add("page-card");
@@ -76,27 +76,27 @@ public class DashboardController {
         estadoLabel.setText("Listo");
     }
 
-    @FXML private void ejecutarDiagnostico() {
-        VBox page = crearPagina("Diagnóstico completo",
+    @FXML private void YWCMejecutarDiagnostico() {
+        VBox page = YWCMcrearPagina("Diagnóstico completo",
                 "Revisa el sistema, memoria, almacenamiento, red y temperatura.");
-        Label estado = agregarEstado(page, "Analizando el equipo...");
-        TableView<Diagnostico> tabla = crearTablaDiagnosticos(false);
+        Label estado = YWCMagregarEstado(page, "Analizando el equipo...");
+        TableView<YWCMDiagnostico> tabla = YWCMcrearTablaDiagnosticos(false);
         ListView<String> problemas = new ListView<>();
         problemas.setPlaceholder(new Label("No hay recomendaciones para mostrar."));
         VBox.setVgrow(tabla, Priority.ALWAYS);
         page.getChildren().addAll(new Label("Resultados del análisis"), tabla,
                 new Label("Problemas y recomendaciones"), problemas);
-        ejecutarEnSegundoPlano("No se pudo completar el diagnóstico:",
-                diagnosticoService::analizarYGuardar,
-                resultado -> {
-                    tabla.setItems(FXCollections.observableArrayList(resultado.diagnosticos()));
+        YWCMejecutarEnSegundoPlano("No se pudo completar el diagnóstico:",
+                YWCMdiagnosticoService::YWCManalizarYGuardar,
+                YWCMresultado -> {
+                    tabla.setItems(FXCollections.observableArrayList(YWCMresultado.diagnosticos()));
                     problemas.setItems(FXCollections.observableArrayList(
-                            resultado.problemas().stream()
-                                    .map(this::formatearProblema)
+                            YWCMresultado.problemas().stream()
+                                    .map(this::YWCMformatearProblema)
                                     .toList()));
-                    long revisar = resultado.diagnosticos().stream()
-                            .filter(d -> "REVISAR".equals(d.getResultado())).count();
-                    estado.setText(resultado.diagnosticos().size() + " áreas revisadas; "
+                    long revisar = YWCMresultado.diagnosticos().stream()
+                            .filter(d -> "REVISAR".equals(d.YWCMgetResultado())).count();
+                    estado.setText(YWCMresultado.diagnosticos().size() + " áreas revisadas; "
                             + revisar + " requieren atención.");
                     estadoLabel.setText(revisar == 0 ? "Diagnóstico terminado"
                             : "Diagnóstico terminado con alertas");
@@ -104,19 +104,19 @@ public class DashboardController {
                 error -> estado.setText(error));
     }
 
-    @FXML private void detectarProblemas() {
-        VBox page = crearPagina("Problemas detectados",
+    @FXML private void YWCMdetectarProblemas() {
+        VBox page = YWCMcrearPagina("Problemas detectados",
                 "Alertas y recomendaciones generadas a partir del estado actual del equipo.");
-        Label estado = agregarEstado(page, "Buscando problemas...");
+        Label estado = YWCMagregarEstado(page, "Buscando problemas...");
         ListView<String> lista = new ListView<>();
         lista.setPlaceholder(new Label("No hay recomendaciones para mostrar."));
         VBox.setVgrow(lista, Priority.ALWAYS);
         page.getChildren().add(lista);
-        ejecutarEnSegundoPlano("No se pudieron detectar los problemas:",
-                diagnosticoService::detectarProblemas,
+        YWCMejecutarEnSegundoPlano("No se pudieron detectar los problemas:",
+                YWCMdiagnosticoService::YWCMdetectarProblemas,
                 problemas -> {
                     lista.setItems(FXCollections.observableArrayList(
-                            problemas.stream().map(this::formatearProblema).toList()));
+                            problemas.stream().map(this::YWCMformatearProblema).toList()));
                     estado.setText(problemas.size() + " recomendaciones.");
                     estadoLabel.setText("Detección terminada");
                 },
@@ -124,40 +124,40 @@ public class DashboardController {
     }
 
     @FXML private void mostrarProcesos() {
-        mostrarTablaDatos("Procesos activos", "Procesos que se están ejecutando en Windows.",
+        YWCMmostrarTablaDatos("Procesos activos", "Procesos que se están ejecutando en Windows.",
                 "Consultando procesos...",
                 List.of("Imagen", "PID", "Sesión", "N.º sesión", "Memoria"),
-                diagnosticoService::obtenerProcesos);
+                YWCMdiagnosticoService::YWCMobtenerProcesos);
     }
 
     @FXML private void mostrarInicio() {
-        mostrarTablaDatos("Programas de inicio",
+        YWCMmostrarTablaDatos("Programas de inicio",
                 "Programas configurados para iniciarse automáticamente con Windows.",
                 "Consultando programas de inicio...",
                 List.of("Nombre", "Comando", "Ubicación", "Usuario"),
-                diagnosticoService::obtenerInicioWindows);
+                YWCMdiagnosticoService::YWCMobtenerInicioWindows);
     }
 
     @FXML private void mostrarAntivirus() {
-        VBox page = crearPagina("Análisis antivirus",
+        VBox page = YWCMcrearPagina("Análisis antivirus",
                 "PC Doctor Soporte solo ofrece una protección básica y no es en tiempo real.");
-        Label estado = agregarEstado(page, "Selecciona una carpeta para analizar.");
+        Label estado = YWCMagregarEstado(page, "Selecciona una carpeta para YWCManalizar.");
         Label carpeta = new Label("Ninguna carpeta seleccionada.");
         carpeta.setWrapText(true);
-        Button analizar = new Button("Elegir carpeta y analizar");
-        TableView<AntivirusService.Detection> detecciones = crearTablaAntivirus();
+        Button YWCManalizar = new Button("Elegir carpeta y YWCManalizar");
+        TableView<YWCMAntivirusService.YWCMDetection> detecciones = YWCMcrearTablaAntivirus();
         TextArea incidencias = new TextArea();
         incidencias.setEditable(false);
         incidencias.setWrapText(true);
         incidencias.setPrefRowCount(4);
         VBox.setVgrow(detecciones, Priority.ALWAYS);
-        page.getChildren().addAll(carpeta, analizar,
+        page.getChildren().addAll(carpeta, YWCManalizar,
                 new Label("Coincidencias"), detecciones,
                 new Label("Detalles del análisis"), incidencias);
 
-        analizar.setOnAction(event -> {
+        YWCManalizar.setOnAction(event -> {
             DirectoryChooser selector = new DirectoryChooser();
-            selector.setTitle("Selecciona una carpeta para analizar");
+            selector.setTitle("Selecciona una carpeta para YWCManalizar");
             File seleccion = selector.showDialog(pageRoot.getScene().getWindow());
             if (seleccion == null) return;
 
@@ -165,70 +165,70 @@ public class DashboardController {
             carpeta.setText("Carpeta: " + directorio.toAbsolutePath());
             detecciones.getItems().clear();
             incidencias.clear();
-            analizar.setDisable(true);
+            YWCManalizar.setDisable(true);
             estado.setText("Analizando archivos con el motor PC Doctor...");
             estadoLabel.setText(estado.getText());
-            ejecutarEnSegundoPlano("No se pudo completar el análisis antivirus:",
-                    () -> antivirusService.scan(directorio),
-                    resultado -> {
-                        detecciones.setItems(FXCollections.observableArrayList(resultado.detections()));
-                        incidencias.setText(resultado.output());
-                        if (resultado.detections().isEmpty()) {
+            YWCMejecutarEnSegundoPlano("No se pudo completar el análisis antivirus:",
+                    () -> YWCMantivirusService.YWCMscan(directorio),
+                    YWCMresultado -> {
+                        detecciones.setItems(FXCollections.observableArrayList(YWCMresultado.detections()));
+                        incidencias.setText(YWCMresultado.YWCMoutput());
+                        if (YWCMresultado.detections().isEmpty()) {
                             estado.setText("No se encontraron coincidencias en "
-                                    + resultado.filesScanned() + " archivos.");
+                                    + YWCMresultado.filesScanned() + " archivos.");
                             estadoLabel.setText("Análisis finalizado");
                         } else {
-                            estado.setText(resultado.detections().size()
+                            estado.setText(YWCMresultado.detections().size()
                                     + " coincidencia(s) encontrada(s).");
                             estadoLabel.setText("Se encontraron coincidencias");
                         }
-                        analizar.setDisable(false);
+                        YWCManalizar.setDisable(false);
                     },
                     error -> {
                         estado.setText(error);
                         estadoLabel.setText("Error en análisis antivirus");
-                        analizar.setDisable(false);
+                        YWCManalizar.setDisable(false);
                     });
         });
     }
 
-    private TableView<AntivirusService.Detection> crearTablaAntivirus() {
-        TableView<AntivirusService.Detection> tabla = new TableView<>();
+    private TableView<YWCMAntivirusService.YWCMDetection> YWCMcrearTablaAntivirus() {
+        TableView<YWCMAntivirusService.YWCMDetection> tabla = new TableView<>();
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setPlaceholder(new Label("Todavía no hay detecciones."));
-        TableColumn<AntivirusService.Detection, String> nombre = new TableColumn<>("Firma");
+        TableColumn<YWCMAntivirusService.YWCMDetection, String> nombre = new TableColumn<>("Firma");
         nombre.setCellValueFactory(cell ->
                 new SimpleStringProperty(cell.getValue().name()));
-        TableColumn<AntivirusService.Detection, String> archivo = new TableColumn<>("Archivo");
-        archivo.setCellValueFactory(cell ->
+        TableColumn<YWCMAntivirusService.YWCMDetection, String> YWCMarchivo = new TableColumn<>("Archivo");
+        YWCMarchivo.setCellValueFactory(cell ->
                 new SimpleStringProperty(cell.getValue().file().toString()));
         tabla.getColumns().add(nombre);
-        tabla.getColumns().add(archivo);
+        tabla.getColumns().add(YWCMarchivo);
         return tabla;
     }
 
     @FXML private void buscarDuplicados() {
-        VBox page = crearPagina("Archivos duplicados",
+        VBox page = YWCMcrearPagina("Archivos duplicados",
                 "Elige una carpeta. Los archivos se comparan por nombre y peso; se conserva "
                         + "uno de cada grupo y puedes desmarcar los que quieras conservar.");
-        Label estado = agregarEstado(page, "Selecciona una carpeta para empezar.");
+        Label estado = YWCMagregarEstado(page, "Selecciona una carpeta para empezar.");
         Label carpetaLabel = new Label("Ninguna carpeta seleccionada.");
         carpetaLabel.setWrapText(true);
-        Button buscar = new Button("Elegir carpeta y buscar");
+        Button YWCMbuscar = new Button("Elegir carpeta y YWCMbuscar");
         Button enviarPapelera = new Button("Enviar seleccionados a la Papelera");
         enviarPapelera.setDisable(true);
-        TableView<CandidatoDuplicado> tabla = crearTablaDuplicados();
+        TableView<YWCMCandidatoDuplicado> tabla = YWCMcrearTablaDuplicados();
         TextArea errores = new TextArea();
         errores.setEditable(false);
         errores.setWrapText(true);
         errores.setPrefRowCount(4);
         errores.setPromptText("Los errores al mover archivos aparecerán aquí.");
         VBox.setVgrow(tabla, Priority.ALWAYS);
-        page.getChildren().addAll(carpetaLabel, buscar, tabla, enviarPapelera, errores);
+        page.getChildren().addAll(carpetaLabel, YWCMbuscar, tabla, enviarPapelera, errores);
 
-        buscar.setOnAction(event -> {
+        YWCMbuscar.setOnAction(event -> {
             DirectoryChooser selector = new DirectoryChooser();
-            selector.setTitle("Selecciona una carpeta para buscar duplicados");
+            selector.setTitle("Selecciona una carpeta para YWCMbuscar duplicados");
             File seleccion = selector.showDialog(pageRoot.getScene().getWindow());
             if (seleccion == null) {
                 return;
@@ -237,17 +237,17 @@ public class DashboardController {
             carpetaLabel.setText("Carpeta: " + directorio.toAbsolutePath());
             tabla.getItems().clear();
             enviarPapelera.setDisable(true);
-            buscar.setDisable(true);
+            YWCMbuscar.setDisable(true);
             errores.clear();
             estado.setText("Buscando archivos duplicados...");
             estadoLabel.setText(estado.getText());
-            ejecutarEnSegundoPlano("No se pudo analizar la carpeta:",
-                    () -> archivoDuplicadoService.buscar(directorio),
+            YWCMejecutarEnSegundoPlano("No se pudo YWCManalizar la carpeta:",
+                    () -> YWCMarchivoDuplicadoService.YWCMbuscar(directorio),
                     grupos -> {
-                        List<CandidatoDuplicado> candidatos = grupos.stream()
+                        List<YWCMCandidatoDuplicado> candidatos = grupos.stream()
                                 .flatMap(grupo -> grupo.duplicados().stream()
-                                        .map(duplicado -> new CandidatoDuplicado(
-                                                duplicado, grupo.original())))
+                                        .map(duplicado -> new YWCMCandidatoDuplicado(
+                                                duplicado, grupo.YWCMoriginal())))
                                 .toList();
                         tabla.setItems(FXCollections.observableArrayList(candidatos));
                         estado.setText(candidatos.isEmpty()
@@ -255,9 +255,9 @@ public class DashboardController {
                                 : candidatos.size() + " duplicados encontrados. "
                                 + "Desmarca lo que no quieras mover a la Papelera.");
                         estadoLabel.setText("Búsqueda de duplicados finalizada");
-                        enviarPapelera.setDisable(candidatos.isEmpty() || !puedeEnviarPapelera());
-                        buscar.setDisable(false);
-                        if (!candidatos.isEmpty() && !puedeEnviarPapelera()) {
+                        enviarPapelera.setDisable(candidatos.isEmpty() || !YWCMpuedeEnviarPapelera());
+                        YWCMbuscar.setDisable(false);
+                        if (!candidatos.isEmpty() && !YWCMpuedeEnviarPapelera()) {
                             errores.setText("Esta versión de Java no permite enviar archivos "
                                     + "a la Papelera desde la aplicación.");
                         }
@@ -265,108 +265,108 @@ public class DashboardController {
                     error -> {
                         estado.setText(error);
                         estadoLabel.setText("Error");
-                        buscar.setDisable(false);
+                        YWCMbuscar.setDisable(false);
                     });
         });
 
         enviarPapelera.setOnAction(event -> {
-            List<CandidatoDuplicado> seleccionados = tabla.getItems().stream()
-                    .filter(CandidatoDuplicado::seleccionado)
+            List<YWCMCandidatoDuplicado> seleccionados = tabla.getItems().stream()
+                    .filter(YWCMCandidatoDuplicado::YWCMseleccionado)
                     .toList();
             if (seleccionados.isEmpty()) {
                 estado.setText("Marca al menos un duplicado para continuar.");
                 return;
             }
-            if (!confirmar("Enviar duplicados a la Papelera",
+            if (!YWCMconfirmar("Enviar duplicados a la Papelera",
                     "Se enviarán " + seleccionados.size()
-                            + " archivos seleccionados a la Papelera. El archivo original "
+                            + " archivos seleccionados a la Papelera. El YWCMarchivo YWCMoriginal "
                             + "de cada grupo se conservará. ¿Continuar?")) {
                 return;
             }
 
             enviarPapelera.setDisable(true);
-            buscar.setDisable(true);
+            YWCMbuscar.setDisable(true);
             estado.setText("Enviando archivos a la Papelera...");
             estadoLabel.setText(estado.getText());
-            ejecutarEnSegundoPlano("No se pudieron mover los archivos:",
-                    () -> moverAPapelera(seleccionados),
+            YWCMejecutarEnSegundoPlano("No se pudieron mover los archivos:",
+                    () -> YWCMmoverAPapelera(seleccionados),
                     resumen -> {
                         List<Path> movidos = resumen.movidos();
-                        tabla.getItems().removeIf(candidato -> movidos.contains(candidato.archivo()));
+                        tabla.getItems().removeIf(candidato -> movidos.contains(candidato.YWCMarchivo()));
                         errores.setText(String.join(System.lineSeparator(), resumen.errores()));
-                        estado.setText(movidos.size() + " archivo(s) enviado(s) a la Papelera; "
+                        estado.setText(movidos.size() + " YWCMarchivo(s) enviado(s) a la Papelera; "
                                 + resumen.errores().size() + " error(es).");
                         estadoLabel.setText(resumen.errores().isEmpty()
                                 ? "Limpieza finalizada" : "Limpieza finalizada con errores");
-                        buscar.setDisable(false);
+                        YWCMbuscar.setDisable(false);
                         enviarPapelera.setDisable(tabla.getItems().isEmpty()
-                                || !puedeEnviarPapelera());
+                                || !YWCMpuedeEnviarPapelera());
                     },
                     error -> {
                         errores.setText(error);
                         estado.setText("No se pudieron mover los archivos.");
                         estadoLabel.setText("Error");
-                        buscar.setDisable(false);
+                        YWCMbuscar.setDisable(false);
                         enviarPapelera.setDisable(false);
                     });
         });
     }
 
-    private TableView<CandidatoDuplicado> crearTablaDuplicados() {
-        TableView<CandidatoDuplicado> tabla = new TableView<>();
+    private TableView<YWCMCandidatoDuplicado> YWCMcrearTablaDuplicados() {
+        TableView<YWCMCandidatoDuplicado> tabla = new TableView<>();
         tabla.setEditable(true);
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setPlaceholder(new Label("Selecciona una carpeta para comenzar."));
 
-        TableColumn<CandidatoDuplicado, Boolean> seleccionar = new TableColumn<>("Enviar");
-        seleccionar.setCellValueFactory(c -> c.getValue().seleccionadoProperty());
+        TableColumn<YWCMCandidatoDuplicado, Boolean> seleccionar = new TableColumn<>("Enviar");
+        seleccionar.setCellValueFactory(c -> c.getValue().YWCMseleccionadoProperty());
         seleccionar.setCellFactory(CheckBoxTableCell.forTableColumn(seleccionar));
         seleccionar.setEditable(true);
         seleccionar.setMaxWidth(90);
 
-        TableColumn<CandidatoDuplicado, String> archivo = new TableColumn<>("Archivo duplicado");
-        archivo.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().archivo().toString()));
-        TableColumn<CandidatoDuplicado, String> conservar = new TableColumn<>("Se conservará");
-        conservar.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().original().toString()));
-        tabla.getColumns().addAll(seleccionar, archivo, conservar);
+        TableColumn<YWCMCandidatoDuplicado, String> YWCMarchivo = new TableColumn<>("Archivo duplicado");
+        YWCMarchivo.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().YWCMarchivo().toString()));
+        TableColumn<YWCMCandidatoDuplicado, String> conservar = new TableColumn<>("Se conservará");
+        conservar.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().YWCMoriginal().toString()));
+        tabla.getColumns().addAll(seleccionar, YWCMarchivo, conservar);
         return tabla;
     }
 
-    private TrashSummary moverAPapelera(List<CandidatoDuplicado> candidatos) {
+    private YWCMTrashSummary YWCMmoverAPapelera(List<YWCMCandidatoDuplicado> candidatos) {
         List<Path> movidos = new ArrayList<>();
         List<String> errores = new ArrayList<>();
-        for (CandidatoDuplicado candidato : candidatos) {
+        for (YWCMCandidatoDuplicado candidato : candidatos) {
             try {
-                if (enviarArchivoAPapelera(candidato.archivo())) {
-                    movidos.add(candidato.archivo());
+                if (YWCMenviarArchivoAPapelera(candidato.YWCMarchivo())) {
+                    movidos.add(candidato.YWCMarchivo());
                 } else {
-                    errores.add(candidato.archivo() + ": Windows no pudo moverlo a la Papelera.");
+                    errores.add(candidato.YWCMarchivo() + ": Windows no pudo moverlo a la Papelera.");
                 }
             } catch (IOException | InterruptedException e) {
-                errores.add(candidato.archivo() + ": " + e.getMessage());
+                errores.add(candidato.YWCMarchivo() + ": " + e.getMessage());
             }
         }
-        return new TrashSummary(movidos, errores);
+        return new YWCMTrashSummary(movidos, errores);
     }
 
-    private boolean enviarArchivoAPapelera(Path archivo) throws IOException, InterruptedException {
-        String ruta = archivo.toAbsolutePath().toString().replace("'", "''");
+    private boolean YWCMenviarArchivoAPapelera(Path YWCMarchivo) throws IOException, InterruptedException {
+        String ruta = YWCMarchivo.toAbsolutePath().toString().replace("'", "''");
         String script = "Add-Type -AssemblyName Microsoft.VisualBasic; "
                 + "[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('" + ruta + "', "
                 + "'OnlyErrorDialogs', 'SendToRecycleBin')";
         Process proceso = new ProcessBuilder("powershell.exe", "-NoProfile", "-NonInteractive",
                 "-Command", script).redirectErrorStream(true).start();
-        return proceso.waitFor() == 0 && !Files.exists(archivo);
+        return proceso.waitFor() == 0 && !Files.exists(YWCMarchivo);
     }
 
-    private boolean puedeEnviarPapelera() {
+    private boolean YWCMpuedeEnviarPapelera() {
         return new File(System.getenv("SystemRoot") == null ? "C:\\Windows"
                 : System.getenv("SystemRoot"), "System32\\WindowsPowerShell\\v1.0\\powershell.exe").isFile();
     }
 
     @FXML private void generarReporte() {
         // La carpeta elegida se conserva solo para esta exportación PDF.
-        VBox page = crearPagina("Reporte de diagnóstico",
+        VBox page = YWCMcrearPagina("Reporte de diagnóstico",
                 "Selecciona la carpeta donde deseas guardar el informe PDF.");
         DirectoryChooser selector = new DirectoryChooser();
         selector.setTitle("Seleccionar carpeta para el reporte PDF");
@@ -379,7 +379,7 @@ public class DashboardController {
             return;
         }
 
-        Label estado = agregarEstado(page, "Generando el reporte...");
+        Label estado = YWCMagregarEstado(page, "Generando el reporte...");
         Label ruta = new Label("Preparando el informe...");
         ruta.setWrapText(true);
         ruta.getStyleClass().add("result-description");
@@ -388,99 +388,99 @@ public class DashboardController {
         VBox tarjeta = new VBox(12, new Label("INFORME PDF"), ruta, abrir);
         tarjeta.getStyleClass().add("result-card");
         page.getChildren().add(tarjeta);
-        ejecutarEnSegundoPlano("No se pudo generar el PDF:",
-                () -> reportePdfService.generar(carpeta.toPath()),
+        YWCMejecutarEnSegundoPlano("No se pudo YWCMgenerar el PDF:",
+                () -> YWCMreportePdfService.YWCMgenerar(carpeta.toPath()),
                 reporte -> {
                     ruta.setText("Guardado en: " + reporte.toAbsolutePath());
-                    abrir.setDisable(!puedeAbrirArchivos());
-                    abrir.setOnAction(event -> abrirReporte(reporte, estado));
-                    estado.setText(puedeAbrirArchivos()
+                    abrir.setDisable(!YWCMpuedeAbrirArchivos());
+                    abrir.setOnAction(event -> YWCMabrirReporte(reporte, estado));
+                    estado.setText(YWCMpuedeAbrirArchivos()
                             ? "Reporte generado y listo para abrir."
                             : "Reporte generado; ábrelo desde la ruta indicada.");
                     estadoLabel.setText("Reporte PDF listo");
                 },
                 error -> {
                     ruta.setText(error);
-                    estado.setText("No se pudo generar el reporte.");
+                    estado.setText("No se pudo YWCMgenerar el reporte.");
                     estadoLabel.setText("Error");
                 });
     }
 
-    @FXML private void renovarIp() {
-        if (confirmar("Renovar IP", "Puede desconectar temporalmente la red. ¿Continuar?")) {
-            ejecutarAccion("Renovar dirección IP", "Libera y solicita una nueva dirección IP.",
-                    "Renovando la dirección IP...", reparacionService::renovarIp);
+    @FXML private void YWCMrenovarIp() {
+        if (YWCMconfirmar("Renovar IP", "Puede desconectar temporalmente la red. ¿Continuar?")) {
+            YWCMejecutarAccion("Renovar dirección IP", "Libera y solicita una nueva dirección IP.",
+                    "Renovando la dirección IP...", YWCMreparacionService::YWCMrenovarIp);
         }
     }
 
-    @FXML private void resetWinsock() {
-        if (confirmar("Restablecer Winsock", "Puede requerir reiniciar Windows. ¿Continuar?")) {
-            ejecutarAccion("Restablecer Winsock", "Restablece el catálogo de red de Windows.",
-                    "Restableciendo Winsock...", reparacionService::resetWinsock);
+    @FXML private void YWCMresetWinsock() {
+        if (YWCMconfirmar("Restablecer Winsock", "Puede requerir reiniciar Windows. ¿Continuar?")) {
+            YWCMejecutarAccion("Restablecer Winsock", "Restablece el catálogo de red de Windows.",
+                    "Restableciendo Winsock...", YWCMreparacionService::YWCMresetWinsock);
         }
     }
 
     @FXML private void cargarHistorial() {
-        VBox page = crearPagina("Historial del diagnóstico",
+        VBox page = YWCMcrearPagina("Historial del diagnóstico",
                 "Últimos diagnósticos guardados en este equipo.");
-        Label estado = agregarEstado(page, "Cargando historial...");
-        TableView<Diagnostico> tabla = crearTablaDiagnosticos(true);
+        Label estado = YWCMagregarEstado(page, "Cargando YWCMhistorial...");
+        TableView<YWCMDiagnostico> tabla = YWCMcrearTablaDiagnosticos(true);
         VBox.setVgrow(tabla, Priority.ALWAYS);
         page.getChildren().add(tabla);
-        ejecutarEnSegundoPlano("No se pudo actualizar el historial:",
-                diagnosticoService::historial,
-                historial -> {
-                    tabla.setItems(FXCollections.observableArrayList(historial));
-                    estado.setText(historial.size() + " registros.");
+        YWCMejecutarEnSegundoPlano("No se pudo actualizar el YWCMhistorial:",
+                YWCMdiagnosticoService::YWCMhistorial,
+                YWCMhistorial -> {
+                    tabla.setItems(FXCollections.observableArrayList(YWCMhistorial));
+                    estado.setText(YWCMhistorial.size() + " registros.");
                     estadoLabel.setText("Historial actualizado");
                 },
                 error -> estado.setText(error));
     }
 
-    private void ejecutarAccion(String titulo, String descripcion, String progreso,
+    private void YWCMejecutarAccion(String YWCMtitulo, String descripcion, String progreso,
                                 Supplier<String> accion) {
-        VBox page = crearPagina(titulo, descripcion);
-        Label estado = agregarEstado(page, progreso);
+        VBox page = YWCMcrearPagina(YWCMtitulo, descripcion);
+        Label estado = YWCMagregarEstado(page, progreso);
         Label resumen = new Label("Esperando respuesta de Windows...");
         resumen.setWrapText(true);
         resumen.getStyleClass().add("result-value");
         VBox tarjeta = new VBox(10, new Label("ESTADO DE LA ACCIÓN"), resumen);
         tarjeta.getStyleClass().add("result-card");
-        TextArea detalle = new TextArea();
-        detalle.setEditable(false);
-        detalle.setWrapText(true);
-        detalle.getStyleClass().add("console");
-        TitledPane detallesTecnicos = new TitledPane("Detalles técnicos de Windows", detalle);
+        TextArea YWCMdetalle = new TextArea();
+        YWCMdetalle.setEditable(false);
+        YWCMdetalle.setWrapText(true);
+        YWCMdetalle.getStyleClass().add("console");
+        TitledPane detallesTecnicos = new TitledPane("Detalles técnicos de Windows", YWCMdetalle);
         detallesTecnicos.setExpanded(false);
         VBox.setVgrow(detallesTecnicos, Priority.ALWAYS);
         page.getChildren().addAll(tarjeta, detallesTecnicos);
-        ejecutarEnSegundoPlano("No se pudo completar la acción:",
+        YWCMejecutarEnSegundoPlano("No se pudo completar la acción:",
                 accion::get,
                 salida -> {
-                    detalle.setText(salida);
-                    if (esErrorComando(salida)) {
-                        resumen.setText("Windows no pudo completar la acción. Consulta el detalle técnico.");
+                    YWCMdetalle.setText(salida);
+                    if (YWCMesErrorComando(salida)) {
+                        resumen.setText("Windows no pudo completar la acción. Consulta el YWCMdetalle técnico.");
                         estado.setText("La acción no se completó.");
                         detallesTecnicos.setExpanded(true);
                     } else {
-                        resumen.setText(resumenAccion(titulo));
+                        resumen.setText(YWCMresumenAccion(YWCMtitulo));
                         estado.setText("Acción finalizada.");
                     }
                     estadoLabel.setText(estado.getText());
                 },
                 error -> {
-                    detalle.setText(error);
-                    resumen.setText("Ocurrió un error. Consulta el detalle técnico.");
+                    YWCMdetalle.setText(error);
+                    resumen.setText("Ocurrió un error. Consulta el YWCMdetalle técnico.");
                     estado.setText("La acción no se completó.");
                     detallesTecnicos.setExpanded(true);
                     estadoLabel.setText("Error");
                 });
     }
 
-    private void mostrarTablaDatos(String titulo, String descripcion, String progreso,
+    private void YWCMmostrarTablaDatos(String YWCMtitulo, String descripcion, String progreso,
                                    List<String> encabezados, Callable<String> tarea) {
-        VBox page = crearPagina(titulo, descripcion);
-        Label estado = agregarEstado(page, progreso);
+        VBox page = YWCMcrearPagina(YWCMtitulo, descripcion);
+        Label estado = YWCMagregarEstado(page, progreso);
         TableView<List<String>> tabla = new TableView<>();
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setPlaceholder(new Label("No hay elementos para mostrar."));
@@ -493,10 +493,10 @@ public class DashboardController {
         }
         VBox.setVgrow(tabla, Priority.ALWAYS);
         page.getChildren().addAll(new Label("Elementos encontrados"), tabla);
-        ejecutarEnSegundoPlano("No se pudo completar la acción:",
+        YWCMejecutarEnSegundoPlano("No se pudo completar la acción:",
                 tarea,
                 salida -> {
-                    if (esErrorComando(salida)) {
+                    if (YWCMesErrorComando(salida)) {
                         estado.setText("No se pudieron cargar los datos.");
                         estadoLabel.setText("Error");
                         tabla.setPlaceholder(new Label(salida));
@@ -507,7 +507,7 @@ public class DashboardController {
                         estadoLabel.setText("Consulta finalizada");
                         return;
                     }
-                    List<List<String>> filas = analizarCsv(salida);
+                    List<List<String>> filas = YWCManalizarCsv(salida);
                     tabla.setItems(FXCollections.observableArrayList(filas));
                     estado.setText(filas.size() + (filas.size() == 1
                             ? " elemento encontrado." : " elementos encontrados."));
@@ -520,20 +520,20 @@ public class DashboardController {
                 });
     }
 
-    private List<List<String>> analizarCsv(String csv) {
+    private List<List<String>> YWCManalizarCsv(String csv) {
         if (csv.isBlank() || csv.equals("Comando ejecutado correctamente sin salida.")) {
             return List.of();
         }
         List<List<String>> filas = new ArrayList<>();
         for (String linea : csv.split("\\R")) {
             if (!linea.isBlank()) {
-                filas.add(analizarLineaCsv(linea));
+                filas.add(YWCManalizarLineaCsv(linea));
             }
         }
         return filas;
     }
 
-    private List<String> analizarLineaCsv(String linea) {
+    private List<String> YWCManalizarLineaCsv(String linea) {
         List<String> campos = new ArrayList<>();
         StringBuilder campo = new StringBuilder();
         boolean entreComillas = false;
@@ -556,8 +556,8 @@ public class DashboardController {
         return campos;
     }
 
-    private String resumenAccion(String titulo) {
-        return switch (titulo) {
+    private String YWCMresumenAccion(String YWCMtitulo) {
+        return switch (YWCMtitulo) {
             case "Limpiar DNS" -> "La solicitud para vaciar la caché DNS terminó sin errores.";
             case "Renovar dirección IP" -> "La solicitud para renovar la dirección IP terminó sin errores.";
             case "Restablecer Winsock" ->
@@ -566,7 +566,7 @@ public class DashboardController {
         };
     }
 
-    private void abrirReporte(Path reporte, Label estado) {
+    private void YWCMabrirReporte(Path reporte, Label estado) {
         try {
             Desktop.getDesktop().open(reporte.toFile());
             estado.setText("Reporte abierto.");
@@ -577,25 +577,25 @@ public class DashboardController {
         }
     }
 
-    private boolean puedeAbrirArchivos() {
+    private boolean YWCMpuedeAbrirArchivos() {
         return Desktop.isDesktopSupported()
                 && Desktop.getDesktop().isSupported(Desktop.Action.OPEN);
     }
 
-    private VBox crearPagina(String titulo, String descripcion) {
-        Label encabezado = new Label(titulo);
+    private VBox YWCMcrearPagina(String YWCMtitulo, String descripcion) {
+        Label encabezado = new Label(YWCMtitulo);
         encabezado.getStyleClass().add("page-title");
-        Label detalle = new Label(descripcion);
-        detalle.getStyleClass().add("page-description");
-        detalle.setWrapText(true);
-        VBox page = new VBox(14, encabezado, detalle);
+        Label YWCMdetalle = new Label(descripcion);
+        YWCMdetalle.getStyleClass().add("page-description");
+        YWCMdetalle.setWrapText(true);
+        VBox page = new VBox(14, encabezado, YWCMdetalle);
         page.getStyleClass().add("content");
         pageRoot.getChildren().setAll(page);
         VBox.setVgrow(page, Priority.ALWAYS);
         return page;
     }
 
-    private Label agregarEstado(VBox page, String texto) {
+    private Label YWCMagregarEstado(VBox page, String texto) {
         Label estado = new Label(texto);
         estado.getStyleClass().add("page-status");
         page.getChildren().add(estado);
@@ -603,56 +603,56 @@ public class DashboardController {
         return estado;
     }
 
-    private TableView<Diagnostico> crearTablaDiagnosticos(boolean incluirFecha) {
-        TableView<Diagnostico> tabla = new TableView<>();
+    private TableView<YWCMDiagnostico> YWCMcrearTablaDiagnosticos(boolean incluirFecha) {
+        TableView<YWCMDiagnostico> tabla = new TableView<>();
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         if (incluirFecha) {
-            TableColumn<Diagnostico, String> fecha = new TableColumn<>("Fecha");
-            fecha.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-                    c.getValue().getFecha().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))));
-            fecha.setPrefWidth(145);
-            tabla.getColumns().add(fecha);
+            TableColumn<YWCMDiagnostico, String> YWCMfecha = new TableColumn<>("Fecha");
+            YWCMfecha.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+                    c.getValue().YWCMgetFecha().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))));
+            YWCMfecha.setPrefWidth(145);
+            tabla.getColumns().add(YWCMfecha);
         }
-        TableColumn<Diagnostico, String> categoria = new TableColumn<>("Área");
-        categoria.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-                c.getValue().getCategoria()));
-        TableColumn<Diagnostico, String> resultado = new TableColumn<>("Estado");
-        resultado.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-                c.getValue().getResultado()));
-        TableColumn<Diagnostico, String> detalle = new TableColumn<>("Detalle");
-        detalle.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-                c.getValue().getDetalle().replace(System.lineSeparator(), " ")));
-        tabla.getColumns().add(categoria);
-        tabla.getColumns().add(resultado);
-        tabla.getColumns().add(detalle);
+        TableColumn<YWCMDiagnostico, String> YWCMcategoria = new TableColumn<>("Área");
+        YWCMcategoria.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+                c.getValue().YWCMgetCategoria()));
+        TableColumn<YWCMDiagnostico, String> YWCMresultado = new TableColumn<>("Estado");
+        YWCMresultado.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+                c.getValue().YWCMgetResultado()));
+        TableColumn<YWCMDiagnostico, String> YWCMdetalle = new TableColumn<>("Detalle");
+        YWCMdetalle.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+                c.getValue().YWCMgetDetalle().replace(System.lineSeparator(), " ")));
+        tabla.getColumns().add(YWCMcategoria);
+        tabla.getColumns().add(YWCMresultado);
+        tabla.getColumns().add(YWCMdetalle);
         return tabla;
     }
 
-    private String formatearProblema(Problema problema) {
-        return problema.area() + " | " + problema.severidad() + System.lineSeparator()
-                + problema.problema() + System.lineSeparator()
-                + "Recomendación: " + problema.recomendacion();
+    private String YWCMformatearProblema(YWCMProblema YWCMproblema) {
+        return YWCMproblema.area() + " | " + YWCMproblema.severidad() + System.lineSeparator()
+                + YWCMproblema.YWCMproblema() + System.lineSeparator()
+                + "Recomendación: " + YWCMproblema.recomendacion();
     }
 
-    private boolean esErrorComando(String resultado) {
-        return resultado.startsWith("No se pudo") ||
-                resultado.startsWith("El comando terminó con código") ||
-                resultado.startsWith("El comando superó el tiempo") ||
-                resultado.startsWith("La ejecución del comando fue interrumpida");
+    private boolean YWCMesErrorComando(String YWCMresultado) {
+        return YWCMresultado.startsWith("No se pudo") ||
+                YWCMresultado.startsWith("El comando terminó con código") ||
+                YWCMresultado.startsWith("El comando superó el tiempo") ||
+                YWCMresultado.startsWith("La ejecución del comando fue interrumpida");
     }
 
-    private <T> void ejecutarEnSegundoPlano(String mensajeError, Callable<T> tarea,
+    private <T> void YWCMejecutarEnSegundoPlano(String mensajeError, Callable<T> tarea,
                                             Consumer<T> alCompletar,
                                             Consumer<String> alFallar) {
-        backgroundExecutor.submit(() -> {
+        YWCMbackgroundExecutor.submit(() -> {
             try {
-                T resultado = tarea.call();
-                Platform.runLater(() -> alCompletar.accept(resultado));
+                T YWCMresultado = tarea.call();
+                Platform.runLater(() -> alCompletar.accept(YWCMresultado));
             } catch (Exception e) {
-                String detalle = e.getMessage() == null
+                String YWCMdetalle = e.getMessage() == null
                         ? e.getClass().getSimpleName() : e.getMessage();
                 Platform.runLater(() -> {
-                    String error = mensajeError + " " + detalle;
+                    String error = mensajeError + " " + YWCMdetalle;
                     alFallar.accept(error);
                     estadoLabel.setText("Error");
                 });
@@ -661,45 +661,45 @@ public class DashboardController {
     }
 
     @PreDestroy
-    private void detenerTrabajosEnSegundoPlano() {
-        backgroundExecutor.shutdownNow();
+    private void YWCMdetenerTrabajosEnSegundoPlano() {
+        YWCMbackgroundExecutor.shutdownNow();
     }
 
-    private boolean confirmar(String titulo, String mensaje) {
+    private boolean YWCMconfirmar(String YWCMtitulo, String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.CONFIRMATION, mensaje,
                 ButtonType.CANCEL, ButtonType.OK);
         alerta.setTitle("PC Doctor");
-        alerta.setHeaderText(titulo);
+        alerta.setHeaderText(YWCMtitulo);
         return alerta.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
     }
 
-    private static final class CandidatoDuplicado {
-        private final Path archivo;
-        private final Path original;
-        private final SimpleBooleanProperty seleccionado = new SimpleBooleanProperty(true);
+    private static final class YWCMCandidatoDuplicado {
+        private final Path YWCMarchivo;
+        private final Path YWCMoriginal;
+        private final SimpleBooleanProperty YWCMseleccionado = new SimpleBooleanProperty(true);
 
-        private CandidatoDuplicado(Path archivo, Path original) {
-            this.archivo = archivo;
-            this.original = original;
+        private YWCMCandidatoDuplicado(Path YWCMarchivo, Path YWCMoriginal) {
+            this.YWCMarchivo = YWCMarchivo;
+            this.YWCMoriginal = YWCMoriginal;
         }
 
-        private Path archivo() {
-            return archivo;
+        private Path YWCMarchivo() {
+            return YWCMarchivo;
         }
 
-        private Path original() {
-            return original;
+        private Path YWCMoriginal() {
+            return YWCMoriginal;
         }
 
-        private boolean seleccionado() {
-            return seleccionado.get();
+        private boolean YWCMseleccionado() {
+            return YWCMseleccionado.get();
         }
 
-        private SimpleBooleanProperty seleccionadoProperty() {
-            return seleccionado;
+        private SimpleBooleanProperty YWCMseleccionadoProperty() {
+            return YWCMseleccionado;
         }
     }
 
-    private record TrashSummary(List<Path> movidos, List<String> errores) {
+    private record YWCMTrashSummary(List<Path> movidos, List<String> errores) {
     }
 }

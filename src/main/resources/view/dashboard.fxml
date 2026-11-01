@@ -3,7 +3,7 @@
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.pcdoctor.controller.DashboardController">
+            fx:controller="com.pcdoctor.controller.YWCMDashboardController">
     <top>
         <VBox styleClass="header">
             <Label text="PC Doctor Soporte" styleClass="title"/>
@@ -16,8 +16,8 @@
                 <VBox spacing="8" styleClass="sidebar">
                     <Button text="⌂ Inicio" onAction="#mostrarPaginaInicio" maxWidth="Infinity"/>
                     <Label text="DIAGNÓSTICO" styleClass="section"/>
-                    <Button text="🔍 Diagnóstico completo" onAction="#ejecutarDiagnostico" maxWidth="Infinity"/>
-                    <Button text="⚠ Detectar problemas" onAction="#detectarProblemas" maxWidth="Infinity"/>
+                    <Button text="🔍 Diagnóstico completo" onAction="#YWCMejecutarDiagnostico" maxWidth="Infinity"/>
+                    <Button text="⚠ Detectar problemas" onAction="#YWCMdetectarProblemas" maxWidth="Infinity"/>
                     <Button text="↻ Historial" onAction="#cargarHistorial" maxWidth="Infinity"/>
                     <Label text="ANÁLISIS" styleClass="section"/>
                     <Button text="📋 Procesos activos" onAction="#mostrarProcesos" maxWidth="Infinity"/>
@@ -27,8 +27,8 @@
                     <Button text="🛡 Análisis antivirus" onAction="#mostrarAntivirus" maxWidth="Infinity"/>
                     <Button text="📁 Archivos duplicados" onAction="#buscarDuplicados" maxWidth="Infinity"/>
                     <Label text="RED" styleClass="section"/>
-                    <Button text="Renovar IP" onAction="#renovarIp" maxWidth="Infinity"/>
-                    <Button text="Restablecer Winsock" onAction="#resetWinsock" maxWidth="Infinity"/>
+                    <Button text="Renovar IP" onAction="#YWCMrenovarIp" maxWidth="Infinity"/>
+                    <Button text="Restablecer Winsock" onAction="#YWCMresetWinsock" maxWidth="Infinity"/>
                                     </VBox>
             </content>
         </ScrollPane>

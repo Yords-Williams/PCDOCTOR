@@ -14,20 +14,20 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @Service
-public class ComandoWindowsService {
-    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(60);
+public class YWCMComandoWindowsService {
+    private static final Duration YWCMDEFAULT_TIMEOUT = Duration.ofSeconds(60);
 
-    public String ejecutar(String... comando) {
-        return ejecutar(DEFAULT_TIMEOUT, comando);
+    public String YWCMejecutar(String... comando) {
+        return YWCMejecutar(YWCMDEFAULT_TIMEOUT, comando);
     }
 
-    public String ejecutar(Duration tiempoMaximo, String... comando) {
+    public String YWCMejecutar(Duration tiempoMaximo, String... comando) {
         Process process = null;
         CompletableFuture<String> salida = null;
         try {
             process = new ProcessBuilder(comando).redirectErrorStream(true).start();
             Process procesoActivo = process;
-            salida = CompletableFuture.supplyAsync(() -> leerSalida(procesoActivo));
+            salida = CompletableFuture.supplyAsync(() -> YWCMleerSalida(procesoActivo));
 
             if (!process.waitFor(tiempoMaximo.toMillis(), TimeUnit.MILLISECONDS)) {
                 process.destroyForcibly();
@@ -37,9 +37,9 @@ public class ComandoWindowsService {
 
             String texto = salida.get(5, TimeUnit.SECONDS).strip();
             if (process.exitValue() != 0) {
-                String detalle = texto.isBlank() ? "El comando no devolvió detalles." : texto;
+                String YWCMdetalle = texto.isBlank() ? "El comando no devolvió detalles." : texto;
                 return "El comando terminó con código " + process.exitValue() + ":" +
-                        System.lineSeparator() + detalle;
+                        System.lineSeparator() + YWCMdetalle;
             }
             return texto.isBlank() ? "Comando ejecutado correctamente sin salida." : texto;
         } catch (InterruptedException e) {
@@ -57,7 +57,7 @@ public class ComandoWindowsService {
         }
     }
 
-    private String leerSalida(Process process) {
+    private String YWCMleerSalida(Process process) {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(process.getInputStream(), Charset.defaultCharset()))) {
             return reader.lines().collect(Collectors.joining(System.lineSeparator()));

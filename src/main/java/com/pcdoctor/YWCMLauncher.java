@@ -2,8 +2,8 @@ package com.pcdoctor;
 
 import javafx.application.Application;
 
-public class Launcher {
+public class YWCMLauncher {
     public static void main(String[] args) {
-        Application.launch(JavaFxApplication.class, args);
+        Application.launch(YWCMJavaFxApplication.class, args);
     }
 }

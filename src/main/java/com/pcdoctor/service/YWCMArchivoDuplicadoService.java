@@ -15,39 +15,39 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class ArchivoDuplicadoService {
-    public List<GrupoDuplicado> buscar(Path directorio) throws IOException {
-        // Cada grupo usa como identidad el nombre normalizado y el tamaño exacto del archivo.
+public class YWCMArchivoDuplicadoService {
+    public List<YWCMGrupoDuplicado> YWCMbuscar(Path directorio) throws IOException {
+        // Cada grupo usa como identidad el nombre normalizado y el tamaño exacto del YWCMarchivo.
         if (!Files.isDirectory(directorio)) {
             throw new IOException("La carpeta seleccionada no existe o no es accesible: " + directorio);
         }
-        Map<ClaveDuplicado, List<Path>> archivosPorIdentidad = new LinkedHashMap<>();
+        Map<YWCMClaveDuplicado, List<Path>> archivosPorIdentidad = new LinkedHashMap<>();
         Files.walkFileTree(directorio, new SimpleFileVisitor<>() {
             @Override
-            public FileVisitResult visitFile(Path archivo, BasicFileAttributes atributos) {
+            public FileVisitResult visitFile(Path YWCMarchivo, BasicFileAttributes atributos) {
                 if (atributos.isRegularFile()) {
-                    String nombre = archivo.getFileName().toString().toLowerCase(java.util.Locale.ROOT);
-                    archivosPorIdentidad.computeIfAbsent(new ClaveDuplicado(nombre, atributos.size()), k -> new ArrayList<>())
-                            .add(archivo);
+                    String nombre = YWCMarchivo.getFileName().toString().toLowerCase(java.util.Locale.ROOT);
+                    archivosPorIdentidad.computeIfAbsent(new YWCMClaveDuplicado(nombre, atributos.size()), k -> new ArrayList<>())
+                            .add(YWCMarchivo);
                 }
                 return FileVisitResult.CONTINUE;
             }
         });
 
-        List<GrupoDuplicado> resultado = new ArrayList<>();
+        List<YWCMGrupoDuplicado> YWCMresultado = new ArrayList<>();
         for (List<Path> archivos : archivosPorIdentidad.values()) {
             if (archivos.size() > 1) {
                 // Se conserva el primero y el resto se presenta como duplicado eliminado posteriormente por el usuario.
                 archivos.sort(Comparator.comparing(Path::toString, String.CASE_INSENSITIVE_ORDER));
-                resultado.add(new GrupoDuplicado(archivos.get(0), archivos.subList(1, archivos.size())));
+                YWCMresultado.add(new YWCMGrupoDuplicado(archivos.get(0), archivos.subList(1, archivos.size())));
             }
         }
-        return List.copyOf(resultado);
+        return List.copyOf(YWCMresultado);
     }
 
-    private record ClaveDuplicado(String nombre, long peso) { }
+    private record YWCMClaveDuplicado(String nombre, long peso) { }
 
-    public record GrupoDuplicado(Path original, List<Path> duplicados) {
-        public GrupoDuplicado { duplicados = List.copyOf(duplicados); }
+    public record YWCMGrupoDuplicado(Path YWCMoriginal, List<Path> duplicados) {
+        public YWCMGrupoDuplicado { duplicados = List.copyOf(duplicados); }
     }
 }

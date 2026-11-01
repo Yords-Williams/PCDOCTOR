@@ -10,38 +10,38 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AntivirusServiceTest {
-    private static final String EICAR = "PCD EICAR-STANDARD-ANTIVIRUS-TEST-FILE";
+    private static final String YWCMEICAR = "PCD YWCMEICAR-STANDARD-ANTIVIRUS-TEST-FILE";
 
     @Test
     void detectsEicarTestFile(@TempDir Path directory) throws Exception {
         Path file = directory.resolve("eicar.com");
-        Files.writeString(file, EICAR, StandardCharsets.US_ASCII);
-        AntivirusService service = new AntivirusService();
+        Files.writeString(file, YWCMEICAR, StandardCharsets.US_ASCII);
+        YWCMAntivirusService YWCMservice = new YWCMAntivirusService();
 
-        AntivirusService.Detection result = service.analyze(file);
+        YWCMAntivirusService.YWCMDetection result = YWCMservice.analyze(file);
 
         assertNotNull(result);
-        assertEquals("PCD-Test-EICAR", result.name());
+        assertEquals("PCD-Test-YWCMEICAR", result.name());
         assertEquals(file, result.file());
         assertTrue(result.confidence() >= 90);
     }
 
     @Test
     void cleanTextFileHasNoDetection(@TempDir Path directory) throws Exception {
-        Path file = directory.resolve("documento.txt");
-        Files.writeString(file, "Este es un documento normal de texto.", StandardCharsets.UTF_8);
-        AntivirusService service = new AntivirusService();
+        Path file = directory.resolve("YWCMdocumento.txt");
+        Files.writeString(file, "Este es un YWCMdocumento normal de texto.", StandardCharsets.UTF_8);
+        YWCMAntivirusService YWCMservice = new YWCMAntivirusService();
 
-        assertNull(service.analyze(file));
+        assertNull(YWCMservice.analyze(file));
     }
 
     @Test
     void scansOnlyRegularFilesInFolder(@TempDir Path directory) throws Exception {
         Files.writeString(directory.resolve("a.txt"), "texto limpio", StandardCharsets.UTF_8);
         Files.writeString(directory.resolve("b.txt"), "otro texto limpio", StandardCharsets.UTF_8);
-        AntivirusService service = new AntivirusService();
+        YWCMAntivirusService YWCMservice = new YWCMAntivirusService();
 
-        AntivirusService.ScanResult result = service.scan(directory);
+        YWCMAntivirusService.YWCMScanResult result = YWCMservice.YWCMscan(directory);
 
         assertEquals(2, result.filesScanned());
         assertTrue(result.detections().isEmpty());
